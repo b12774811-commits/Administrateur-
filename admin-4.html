@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Administration — Ela Group Services</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{ --ink:#1B1712; --paper:#F5F1E6; --raised:#EDE8DA; --amber:#EFA928; --teal:#1E8A78; --teal-deep:#146357; --red:#B3341F; --line:rgba(27,23,18,.16); --soft:rgba(27,23,18,.62); }
+  *{ box-sizing:border-box; }
+  body{ margin:0; background:var(--paper); color:var(--ink); font:16px/1.55 'IBM Plex Sans',system-ui,sans-serif; }
+  h1,h2,h3{ font-family:'Space Grotesk',system-ui,sans-serif; margin:0; letter-spacing:-.01em; }
+  .wrap{ max-width:720px; margin:0 auto; padding:20px 18px 60px; }
+  .top{ display:flex; justify-content:space-between; align-items:center; gap:12px; padding:14px 0 18px; border-bottom:1px solid var(--line); margin-bottom:24px; }
+  .top h1{ font-size:1.15rem; }
+  label{ display:block; font-weight:500; margin:16px 0 6px; font-size:.95rem; }
+  input,textarea{ width:100%; padding:12px; font:inherit; color:inherit; background:#fff; border:1px solid var(--line); border-radius:3px; }
+  textarea{ min-height:84px; resize:vertical; }
+  input[type=file]{ padding:10px; background:var(--raised); }
+  .btn{ display:inline-flex; justify-content:center; align-items:center; padding:12px 20px; font:500 .95rem 'IBM Plex Sans',sans-serif; border-radius:3px; border:1px solid transparent; cursor:pointer; }
+  .btn-main{ background:var(--teal); color:#F5F1E6; } .btn-main:hover{ background:var(--teal-deep); }
+  .btn-line{ background:transparent; border-color:var(--line); color:var(--ink); }
+  .btn-del{ background:transparent; border-color:var(--red); color:var(--red); }
+  .btn[disabled]{ opacity:.55; cursor:wait; }
+  :focus-visible{ outline:2px solid var(--teal); outline-offset:2px; }
+  .card{ background:var(--raised); border:1px solid var(--line); border-radius:3px; padding:22px 18px; }
+  .row{ display:flex; gap:10px; flex-wrap:wrap; margin-top:20px; }
+  .msg{ margin-top:14px; font-size:.92rem; min-height:1.4em; }
+  .msg.err{ color:var(--red); } .msg.ok{ color:var(--teal-deep); }
+  .svc{ border-top:1px solid var(--line); padding:18px 0 6px; }
+  .svc h3{ font-size:1.05rem; }
+  .hint{ font-size:.85rem; color:var(--soft); margin-top:6px; }
+  .slot{ margin-top:6px; padding-top:2px; }
+  .slot .prev{ display:none; width:110px; height:110px; object-fit:cover; border-radius:3px; margin-top:10px; border:1px solid var(--line); }
+  .slot .rm{ margin-top:8px; padding:7px 12px; font-size:.85rem; }
+  #preview{ display:none; width:140px; height:140px; object-fit:cover; border-radius:3px; margin-top:10px; border:1px solid var(--line); }
+  .list{ margin-top:36px; }
+  .list h2{ font-size:1.2rem; margin-bottom:14px; }
+  .item{ display:flex; gap:14px; align-items:center; padding:12px 0; border-top:1px solid var(--line); }
+  .item img,.item .ph{ width:64px; height:64px; flex:none; object-fit:cover; border-radius:3px; background:var(--raised); }
+  .item .ph{ display:flex; align-items:center; justify-content:center; font-size:.7rem; color:var(--soft); text-align:center; }
+  .item .info{ flex:1; min-width:0; }
+  .item .info strong{ display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .item .info span{ color:var(--soft); font-size:.9rem; }
+  .item .acts{ display:flex; flex-direction:column; gap:6px; }
+  .item .btn{ padding:7px 12px; font-size:.85rem; }
+  .empty{ color:var(--soft); padding:12px 0; border-top:1px solid var(--line); }
+  [hidden]{ display:none !important; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <section id="login-view" hidden>
+    <div class="top"><h1>Administration</h1></div>
+    <div class="card">
+      <h2>Connexion</h2>
+      <label for="email">Adresse e-mail</label>
+      <input id="email" type="email" autocomplete="username">
+      <label for="pass">Mot de passe</label>
+      <input id="pass" type="password" autocomplete="current-password">
+      <div class="row"><button class="btn btn-main" id="login-btn">Se connecter</button></div>
+      <div class="msg" id="login-msg" role="alert"></div>
+    </div>
+  </section>
+
+  <section id="admin-view" hidden>
+    <div class="top">
+      <h1>Boutique — Ela Group Services</h1>
+      <button class="btn btn-line" id="logout-btn">Se déconnecter</button>
+    </div>
+
+    <div class="card">
+      <h2 id="form-title">Ajouter un article</h2>
+      <label for="f-name">Nom de l’article</label>
+      <input id="f-name" maxlength="80">
+      <label for="f-price">Prix en FCFA</label>
+      <input id="f-price" type="number" inputmode="numeric" min="0" step="1">
+      <label for="f-desc">Description courte</label>
+      <textarea id="f-desc" maxlength="300"></textarea>
+      <label for="f-disc">Réduction en % (facultatif)</label>
+      <input id="f-disc" type="number" inputmode="numeric" min="0" max="90" step="1" placeholder="Ex : 10">
+      <div class="hint" id="disc-hint"></div>
+      <div id="slots"></div>
+      <label for="f-video">Lien de la vidéo (facultatif)</label>
+      <input id="f-video" type="url" inputmode="url" placeholder="Lien YouTube, Facebook, TikTok ou .mp4">
+      <div class="hint">Collez seulement le lien : la vidéo reste sur son site d’origine.</div>
+      <div class="row">
+        <button class="btn btn-main" id="save-btn">Enregistrer l’article</button>
+        <button class="btn btn-line" id="cancel-btn" hidden>Annuler la modification</button>
+      </div>
+      <div class="msg" id="form-msg" role="status"></div>
+    </div>
+
+    <div class="list">
+      <h2>Articles en ligne</h2>
+      <div id="items"></div>
+    </div>
+
+    <div class="card" style="margin-top:34px">
+      <h2>Photos des services</h2>
+      <div class="hint">Une photo par service, affichée sur le site. Pour la restauration de photos, ajoutez « avant » et « après » : le site affiche un curseur pour les comparer. Utilisez la même photo (même cadrage) pour les deux.</div>
+      <div id="svc-list"></div>
+    </div>
+  </section>
+
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+import { getFirestore, collection, getDocs, addDoc, setDoc, updateDoc, deleteDoc, doc, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+
+const app = initializeApp({
+  apiKey: "AIzaSyDz8eWj67YWFq5mPu5X_e2q9n6YHq0XF-k",
+  authDomain: "elagroupservices-7d3b6.firebaseapp.com",
+  projectId: "elagroupservices-7d3b6",
+  storageBucket: "elagroupservices-7d3b6.firebasestorage.app",
+  messagingSenderId: "402394593738",
+  appId: "1:402394593738:web:10282d65f1c5fb04463733"
+});
+const auth = getAuth(app), db = getFirestore(app);
+const $ = id => document.getElementById(id);
+const say = (id, text, kind) => { const e = $(id); e.textContent = text; e.className = "msg " + (kind || ""); };
+
+let editingId = null, products = [];
+const slots = [0, 1, 2].map(() => ({ data: "" }));
+const fmt = n => Number(n).toLocaleString("fr-FR") + " FCFA";
+
+/* ---------- Connexion ---------- */
+onAuthStateChanged(auth, user => {
+  $("login-view").hidden = !!user;
+  $("admin-view").hidden = !user;
+  if (user) { loadItems(); loadServices(); }
+});
+$("login-btn").onclick = async () => {
+  const b = $("login-btn"); b.disabled = true; say("login-msg", "");
+  try { await signInWithEmailAndPassword(auth, $("email").value.trim(), $("pass").value); }
+  catch (e) { say("login-msg", "E-mail ou mot de passe incorrect.", "err"); }
+  b.disabled = false;
+};
+$("pass").addEventListener("keydown", e => { if (e.key === "Enter") $("login-btn").click(); });
+$("logout-btn").onclick = () => signOut(auth);
+
+/* ---------- Photo : réduite avant l’envoi ---------- */
+function shrink(file, max = 700, quality = 0.72) {
+  return new Promise((ok, ko) => {
+    const url = URL.createObjectURL(file), img = new Image();
+    img.onload = () => {
+      const r = Math.min(1, max / Math.max(img.width, img.height));
+      const c = document.createElement("canvas");
+      c.width = Math.round(img.width * r); c.height = Math.round(img.height * r);
+      c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+      URL.revokeObjectURL(url);
+      ok(c.toDataURL("image/jpeg", quality));
+    };
+    img.onerror = () => ko(new Error("Image illisible"));
+    img.src = url;
+  });
+}
+
+/* ---------- 3 emplacements photo ---------- */
+const slotBox = $("slots");
+slots.forEach((s, i) => {
+  const wrap = document.createElement("div"); wrap.className = "slot";
+  const lab = document.createElement("label"); lab.htmlFor = "f-photo" + i;
+  lab.textContent = i === 0 ? "Photo 1 (principale)" : "Photo " + (i + 1) + " (facultatif)";
+  const inp = document.createElement("input"); inp.type = "file"; inp.accept = "image/*"; inp.id = "f-photo" + i;
+  const pv = document.createElement("img"); pv.className = "prev"; pv.alt = "Aperçu photo " + (i + 1);
+  const rm = document.createElement("button"); rm.type = "button"; rm.className = "btn btn-line rm"; rm.textContent = "Retirer cette photo"; rm.hidden = true;
+  s.inp = inp; s.pv = pv; s.rm = rm;
+  inp.onchange = async e => {
+    const f = e.target.files[0]; if (!f) return;
+    try { s.data = await shrink(f); showSlot(s); say("form-msg", ""); }
+    catch (err) { s.data = ""; showSlot(s); say("form-msg", "Cette photo ne peut pas être lue. Choisissez-en une autre.", "err"); }
+  };
+  rm.onclick = () => { s.data = ""; inp.value = ""; showSlot(s); };
+  wrap.append(lab, inp, pv, rm); slotBox.appendChild(wrap);
+});
+function showSlot(s) {
+  if (s.data) { s.pv.src = s.data; s.pv.style.display = "block"; s.rm.hidden = false; }
+  else { s.pv.removeAttribute("src"); s.pv.style.display = "none"; s.rm.hidden = true; }
+}
+
+/* ---------- Réduction : aperçu du prix ---------- */
+function discHint() {
+  const p = Number($("f-price").value), d = Number($("f-disc").value);
+  $("disc-hint").textContent = (p > 0 && d > 0 && d <= 90) ? "Prix affiché après réduction : " + fmt(Math.round(p * (100 - d) / 100)) : "";
+}
+$("f-price").oninput = discHint; $("f-disc").oninput = discHint;
+
+/* ---------- Formulaire ---------- */
+function resetForm() {
+  editingId = null;
+  ["f-name", "f-price", "f-desc", "f-disc", "f-video"].forEach(i => $(i).value = "");
+  slots.forEach(s => { s.data = ""; s.inp.value = ""; showSlot(s); });
+  $("disc-hint").textContent = "";
+  $("form-title").textContent = "Ajouter un article";
+  $("cancel-btn").hidden = true;
+}
+$("cancel-btn").onclick = () => { resetForm(); say("form-msg", ""); };
+
+$("save-btn").onclick = async () => {
+  const name = $("f-name").value.trim(), price = Number($("f-price").value);
+  const discount = $("f-disc").value === "" ? 0 : Number($("f-disc").value);
+  const video = $("f-video").value.trim();
+  if (!name) return say("form-msg", "Écrivez le nom de l’article.", "err");
+  if (!(price >= 0) || $("f-price").value === "") return say("form-msg", "Indiquez le prix en FCFA.", "err");
+  if (!(discount >= 0 && discount <= 90)) return say("form-msg", "La réduction doit être entre 0 et 90 %.", "err");
+  if (video && !/^https?:\/\//i.test(video)) return say("form-msg", "Le lien de la vidéo doit commencer par https://", "err");
+  const imgs = slots.map(s => s.data).filter(Boolean);
+  if (JSON.stringify(imgs).length > 900000) return say("form-msg", "Les photos sont trop lourdes. Retirez-en une ou choisissez des photos plus légères.", "err");
+  const b = $("save-btn"); b.disabled = true; say("form-msg", "Enregistrement…");
+  const data = { name, price, discount, desc: $("f-desc").value.trim(), img: imgs[0] || "", imgs, video };
+  try {
+    if (editingId) await updateDoc(doc(db, "products", editingId), data);
+    else await addDoc(collection(db, "products"), { ...data, createdAt: serverTimestamp() });
+    const wasEdit = !!editingId;
+    resetForm(); await loadItems();
+    say("form-msg", wasEdit ? "Article modifié." : "Article ajouté. Il est visible sur le site.", "ok");
+  } catch (e) {
+    say("form-msg", "L’enregistrement a échoué : " + (e.code || e.message || e), "err");
+  }
+  b.disabled = false;
+};
+
+/* ---------- Liste ---------- */
+async function loadItems() {
+  const box = $("items"); box.textContent = "Chargement…";
+  try {
+    const snap = await getDocs(query(collection(db, "products"), orderBy("createdAt", "desc")));
+    products = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  } catch (e) { box.textContent = "Impossible de charger les articles. Vérifiez les règles Firestore."; return; }
+  box.textContent = "";
+  if (!products.length) { const p = document.createElement("div"); p.className = "empty"; p.textContent = "Aucun article pour l’instant. Ajoutez le premier avec le formulaire ci-dessus."; box.appendChild(p); return; }
+  products.forEach(p => {
+    const list = (Array.isArray(p.imgs) && p.imgs.length) ? p.imgs : (p.img ? [p.img] : []);
+    const row = document.createElement("div"); row.className = "item";
+    let m;
+    if (list[0]) { m = document.createElement("img"); m.src = list[0]; m.alt = p.name; }
+    else { m = document.createElement("div"); m.className = "ph"; m.textContent = "Sans photo"; }
+    const info = document.createElement("div"); info.className = "info";
+    const s = document.createElement("strong"); s.textContent = p.name;
+    const sp = document.createElement("span");
+    const d = Number(p.discount) || 0;
+    sp.textContent = d > 0 ? fmt(Math.round(p.price * (100 - d) / 100)) + " (−" + d + " %)" : fmt(p.price);
+    info.append(s, sp);
+    const acts = document.createElement("div"); acts.className = "acts";
+    const be = document.createElement("button"); be.className = "btn btn-line"; be.textContent = "Modifier";
+    be.onclick = () => {
+      editingId = p.id;
+      $("f-name").value = p.name; $("f-price").value = p.price; $("f-desc").value = p.desc || "";
+      $("f-disc").value = d > 0 ? d : ""; $("f-video").value = p.video || "";
+      slots.forEach((sl, i) => { sl.data = list[i] || ""; sl.inp.value = ""; showSlot(sl); });
+      discHint();
+      $("form-title").textContent = "Modifier l’article"; $("cancel-btn").hidden = false;
+      say("form-msg", "Changez ce que vous voulez, puis appuyez sur « Enregistrer l’article ».");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    };
+    const bd = document.createElement("button"); bd.className = "btn btn-del"; bd.textContent = "Supprimer";
+    bd.onclick = async () => {
+      if (!confirm("Supprimer « " + p.name + " » du site ?")) return;
+      try { await deleteDoc(doc(db, "products", p.id)); if (editingId === p.id) resetForm(); await loadItems(); say("form-msg", "Article supprimé.", "ok"); }
+      catch (e) { say("form-msg", "La suppression a échoué.", "err"); }
+    };
+    acts.append(be, bd);
+    row.append(m, info, acts); box.appendChild(row);
+  });
+}
+
+/* ---------- Photos des services ---------- */
+const SERVICES = [
+  { id: "site", name: "Création de site web" },
+  { id: "vente", name: "Création de page de vente" },
+  { id: "facebook", name: "Boostage de page Facebook" },
+  { id: "catalogue", name: "Catalogue numérique pour vendeurs" },
+  { id: "photo-ia", name: "Restauration de photos par IA", compare: true },
+  { id: "maintenance", name: "Maintenance informatique" },
+  { id: "import", name: "Import/export Chine – Abidjan" },
+  { id: "musique", name: "Formation musicale à domicile" }
+];
+const svcState = {};
+SERVICES.forEach(sv => {
+  const fields = sv.compare
+    ? [["before", "Photo d’origine (avant)"], ["after", "Photo restaurée (après)"]]
+    : [["img", "Photo du service"]];
+  const wrap = document.createElement("div"); wrap.className = "svc";
+  const h = document.createElement("h3"); h.textContent = sv.name; wrap.appendChild(h);
+  const st = svcState[sv.id] = {};
+  fields.forEach(([key, label]) => {
+    const s = st[key] = { data: "" };
+    const slot = document.createElement("div"); slot.className = "slot";
+    const lab = document.createElement("label"); lab.htmlFor = "svc-" + sv.id + "-" + key; lab.textContent = label;
+    const inp = document.createElement("input"); inp.type = "file"; inp.accept = "image/*"; inp.id = lab.htmlFor;
+    const pv = document.createElement("img"); pv.className = "prev"; pv.alt = "Aperçu : " + label;
+    const rm = document.createElement("button"); rm.type = "button"; rm.className = "btn btn-line rm"; rm.textContent = "Retirer cette photo"; rm.hidden = true;
+    s.inp = inp; s.pv = pv; s.rm = rm;
+    inp.onchange = async e => {
+      const f = e.target.files[0]; if (!f) return;
+      try { s.data = await shrink(f, 640, 0.7); showSlot(s); say("svc-msg-" + sv.id, ""); }
+      catch (err) { s.data = ""; showSlot(s); say("svc-msg-" + sv.id, "Cette photo ne peut pas être lue. Choisissez-en une autre.", "err"); }
+    };
+    rm.onclick = () => { s.data = ""; inp.value = ""; showSlot(s); };
+    slot.append(lab, inp, pv, rm); wrap.appendChild(slot);
+  });
+  const row = document.createElement("div"); row.className = "row";
+  const save = document.createElement("button"); save.className = "btn btn-main"; save.textContent = "Enregistrer les photos";
+  row.appendChild(save);
+  const msg = document.createElement("div"); msg.className = "msg"; msg.id = "svc-msg-" + sv.id; msg.setAttribute("role", "status");
+  save.onclick = async () => {
+    const data = {};
+    Object.keys(st).forEach(k => { if (st[k].data) data[k] = st[k].data; });
+    if (sv.compare && (data.before ? !data.after : data.after)) return say(msg.id, "Ajoutez les deux photos (avant et après), ou aucune.", "err");
+    if (JSON.stringify(data).length > 900000) return say(msg.id, "Les photos sont trop lourdes. Choisissez des photos plus légères.", "err");
+    save.disabled = true; say(msg.id, "Enregistrement…");
+    try {
+      if (Object.keys(data).length) await setDoc(doc(db, "services", sv.id), { ...data, updatedAt: serverTimestamp() });
+      else await deleteDoc(doc(db, "services", sv.id));
+      say(msg.id, Object.keys(data).length ? "Photos enregistrées. Elles sont visibles sur le site." : "Photos retirées du site.", "ok");
+    } catch (e) {
+      say(msg.id, e.code === "permission-denied"
+        ? "Autorisation refusée : ajoutez la règle « services » dans Firestore (Règles), puis réessayez."
+        : "L’enregistrement a échoué : " + (e.code || e.message || e), "err");
+    }
+    save.disabled = false;
+  };
+  wrap.append(row, msg); $("svc-list").appendChild(wrap);
+});
+async function loadServices() {
+  try {
+    const snap = await getDocs(collection(db, "services"));
+    snap.forEach(d => {
+      const st = svcState[d.id]; if (!st) return;
+      const v = d.data();
+      Object.keys(st).forEach(k => { st[k].data = v[k] || ""; showSlot(st[k]); });
+    });
+  } catch (e) { /* règle « services » pas encore ajoutée : les champs restent vides */ }
+}
+</script>
+</body>
+</html>
